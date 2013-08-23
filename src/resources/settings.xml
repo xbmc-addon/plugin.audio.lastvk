@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<setting id="vk_login" type="text" label="30001" default="" />
+    <setting id="vk_password" type="text" label="30002" option="hidden" default="" />
+    <setting id="vk_token" type="text" visible="false" default="" />
+    <setting type="sep" />
+    <setting id="lastfm_login" type="text" label="30003" default="" />
+    <setting id="lastfm_password" type="text" label="30004" option="hidden" default="" />
+    <setting id="lastfm_session_key" type="text" visible="false" default="" />
+</settings>
