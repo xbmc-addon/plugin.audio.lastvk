@@ -4,6 +4,7 @@ import time
 import traceback
 
 import xbmc
+import xbmcaddon
 
 import xbmcup.app
 import xbmcup.gui
@@ -13,7 +14,6 @@ import core.lastfm
 
 xbmcup.log.set_prefix('script.service.lastvk')
 
-SETTING = xbmcup.app.Setting('plugin.audio.lastvk')
 LASTFM = core.lastfm.LastFM('2c207878e17c021c6ee060f8f39487f2', '570aa4c51ccb896a4130363ca55ecac2', 'plugin.audio.lastvk', 'lastfm_login', 'lastfm_password', 'lastfm_session_key')
 
 
@@ -99,12 +99,12 @@ class Service(xbmcup.app.Service):
         return 1
 
     def now_playing(self, artist, track, duration):
-        if bool(SETTING['lastfm_scrobbling'] == 'true'):
+        if bool(xbmcaddon.Addon(id='plugin.audio.lastvk').getSetting(id='lastfm_scrobbling') == 'true'):
             LASTFM.track.updateNowPlaying(artist=artist, track=track, duration=duration)
 
 
     def scrobble(self, artist, track, duration, timestamp):
-        if bool(SETTING['lastfm_scrobbling'] == 'true'):
+        if bool(xbmcaddon.Addon(id='plugin.audio.lastvk').getSetting(id='lastfm_scrobbling') == 'true'):
             LASTFM.track.scrobble(artist=artist, track=track, timestamp=timestamp, duration=duration)
 
 

@@ -4,4 +4,6 @@
 	<string id="30003">Логин Last.fm</string>
 	<string id="30004">Пароль Last.fm</string>
     <string id="30005">Отправлять статистику на Last.fm</string>
+    <string id="30006">Очистить кэш для Last.fm</string>
+    <string id="30007">Очистить кэш для ВКонтакте</string>
 </strings>

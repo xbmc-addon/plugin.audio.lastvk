@@ -4,6 +4,8 @@ import re
 import hashlib
 import xml.etree.ElementTree as ET
 
+import xbmcaddon
+
 import xbmcup.net
 import xbmcup.app
 import xbmcup.gui
@@ -333,11 +335,10 @@ class LastFM(object):
     def __init__(self, api_key, secret_key, plugin, login, password, session_key):
         self._api_key = api_key
         self._secret_key = secret_key
+        self._plugin = plugin
         self._login = login
         self._password = password
         self._session_key = session_key
-
-        self._setting = xbmcup.app.Setting(plugin)
 
         self.artist = _Artist(self.api)
         self.album  = _Album(self.api)
@@ -358,7 +359,7 @@ class LastFM(object):
 
                 result = self._api('post', sk, **kwargs)
                 if result is None:
-                    xbmcup.app.setting[self._session_key] = ''
+                    self._set_setting(self._session_key, '')
                 else:
                     return result
         else:
@@ -391,22 +392,22 @@ class LastFM(object):
 
 
     def _session(self):
-        sk = self._setting[self._session_key]
+        sk = self._get_setting(self._session_key)
         if sk:
             return sk
 
         while True:
-            login = self._setting[self._login]
-            password = self._setting[self._password]
+            login = self._get_setting(self._login)
+            password = self._get_setting(self._password)
 
             if login and password:
                 sk = self._auth(login, password)
                 if sk:
-                    self._setting[self._session_key] = sk
+                    self._set_setting(self._session_key, sk)
                     return sk
 
-                self._setting[self._login] = ''
-                self._setting[self._password] = ''
+                self._set_setting(self._login, '')
+                self._set_setting(self._password, '')
 
             while True:
                 login = xbmcup.gui.prompt(u'Last.fm username')
@@ -422,8 +423,8 @@ class LastFM(object):
                 if password:
                     break
 
-            self._setting[self._login] = login
-            self._setting[self._password] = password
+            self._set_setting(self._login, login)
+            self._set_setting(self._password, password)
 
 
 
@@ -443,3 +444,10 @@ class LastFM(object):
             line += params[key].encode('utf8') if isinstance(params[key], unicode) else str(params[key])
         line += self._secret_key
         return hashlib.md5(line).hexdigest()
+
+    def _get_setting(self, key):
+        return xbmcaddon.Addon(id=self._plugin).getSetting(id=key)
+
+    def _set_setting(self, key, value):
+        xbmcaddon.Addon(id=self._plugin).setSetting(id=key, value=value)
+

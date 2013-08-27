@@ -4,4 +4,6 @@
 	<string id="30003">Last.fm username</string>
 	<string id="30004">Last.fm password</string>
     <string id="30005">Submit songs to Last.fm</string>
+    <string id="30006">Clear the cache for Last.fm</string>
+    <string id="30007">Clear the cache for VK</string>
 </strings>

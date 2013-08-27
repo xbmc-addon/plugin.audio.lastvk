@@ -703,6 +703,16 @@ class Setting(xbmcup.app.Handler):
     def handle(self):
         xbmcup.gui.setting()
 
+class ClearCache(xbmcup.app.Handler):
+    def handle(self):
+        if self.argv and isinstance(self.argv, dict) and 'site' in self.argv:
+            if self.argv['site'] == 'lastfm':
+                CACHE.flush()
+                xbmcup.gui.alert(u'Кэш для Last.fm сброшен.', title='Last.fm')
+
+            elif self.argv['site'] == 'vk':
+                xbmcup.gui.alert(u'Кэш для ВКонтакта сброшен.', title='VK')
+
 
 
 
@@ -728,5 +738,6 @@ plugin.route('recommendations', Recommendations)
 
 plugin.route('info', Info)
 plugin.route('setting', Setting)
+plugin.route('clear-cache', ClearCache)
 
 plugin.run()
