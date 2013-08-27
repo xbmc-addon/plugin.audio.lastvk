@@ -11,9 +11,16 @@ import xbmcup.app
 import xbmcup.gui
 
 AUTH_METHOD = (
+    'playlist.create',
+    'playlist.addTrack',
     'user.getRecommendedArtists',
+    'user.getPlaylists',
     'track.updateNowPlaying',
     'track.scrobble'
+)
+
+USER_METHOD = (
+    'user.getPlaylists',
 )
 
 
@@ -251,8 +258,34 @@ class _Album(_Base):
             name = xml.findtext('./name') or ''
             artist = xml.findtext('./artist') or ''
             if mbid or (name and artist):
-                result.append(dict(mbid=mbid, name=unicode(name), artist=unicode(artist)))
+                img = self.get_text_list(xml, './image')
+                result.append(dict(mbid=mbid, name=unicode(name), artist=unicode(artist), image=(img[-1] if img else None)))
         return result
+
+
+class _PlayList(_Base):
+    def fetch(self, pid):
+        result = []
+        
+        for xml in ET.fromstring(self.api('playlist.fetch', playlistURL='lastfm://playlist/' + pid)).findall('./{http://xspf.org/ns/0/}playlist/{http://xspf.org/ns/0/}trackList/{http://xspf.org/ns/0/}track'):
+            name = xml.findtext('./{http://xspf.org/ns/0/}title')
+            if name:
+                track = dict(name=unicode(name), artist=unicode(xml.findtext('./{http://xspf.org/ns/0/}creator') or ''), album=unicode(xml.findtext('./{http://xspf.org/ns/0/}album') or ''), duration=int(xml.findtext('./{http://xspf.org/ns/0/}duration') or 0)/1000)
+
+                img = self.get_text_list(xml, './{http://xspf.org/ns/0/}image')
+                track['image'] = img[-1] if img else None
+
+                result.append(track)
+            
+        return result
+
+    def create(self, title, description=None):
+        params = self.compile(title=title, description=description)
+        return ET.fromstring(self.api('playlist.create', **params)).findtext('./playlists/playlist/id') or None
+
+
+    def addTrack(self, pid, track, artist):
+        self.api('playlist.addTrack', **dict(playlistID=pid, track=track, artist=artist))
 
 
 
@@ -328,6 +361,17 @@ class _User(_Base):
         return result
 
 
+    def getPlaylists(self):
+        result = []
+        for xml in ET.fromstring(self.api('user.getPlaylists')).findall('./playlists/playlist'):
+            pid = xml.findtext('./id')
+            title = xml.findtext('./title')
+            if pid and title:
+                img = self.get_text_list(xml, './image')
+                result.append({'id': pid, 'title': unicode(title), 'image': (img[-1] if img else None), 'duration': int(xml.findtext('./duration') or 0)})
+        return result
+
+
 
 class LastFM(object):
     RE_ERROR = re.compile('<error code="([0-9]+)">([^<]+)</error>', re.S)
@@ -342,6 +386,7 @@ class LastFM(object):
 
         self.artist = _Artist(self.api)
         self.album  = _Album(self.api)
+        self.playlist  = _PlayList(self.api)
         self.track  = _Track(self.api)
         self.tag    = _Tag(self.api)
         self.user   = _User(self.api)
@@ -373,6 +418,8 @@ class LastFM(object):
         params.update(kwargs)
 
         if http_method == 'post':
+            if params['method'] in USER_METHOD:
+                params['user'] = self._get_setting(self._login)
             params['api_sig'] = self._sig(params)
             response = xbmcup.net.http.post('https://ws.audioscrobbler.com/2.0/', data=params)
         else:

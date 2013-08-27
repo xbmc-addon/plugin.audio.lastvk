@@ -44,10 +44,12 @@ class Base(xbmcup.app.Handler):
             try:
                 bg = FANARTTV.api('artist', mbid, 'artistbackground')
             except core.fanarttv.FanartTVError:
-                pass
+                response['fanarttv:artist:' + mbid] = ''
             else:
                 if bg:
                     response['fanarttv:artist:' + mbid] = bg
+                else:
+                    response['fanarttv:artist:' + mbid] = ''
 
         if not isinstance(mbids, (list, tuple)):
             mbids = [mbids]
@@ -221,13 +223,10 @@ class Base(xbmcup.app.Handler):
         return videos
 
 
-
     def render_artists(self, artists):
         fanart = self.get_fanart([x['mbid'] for x in artists if x['mbid']])
 
         for artist in artists:
-
-            print str(artist)
 
             item = dict(
                 url    = self.link('artist', mbid=artist['mbid'], artist=artist['name']),
@@ -257,8 +256,10 @@ class Index(xbmcup.app.Handler):
         cover = xbmcup.system.fs('home://addons/plugin.audio.lastvk/icon.png')
         fanart = xbmcup.system.fs('home://addons/plugin.audio.lastvk/fanart.jpg')
 
-        self.item(u'Тэги', self.link('tags', {}), folder=True, cover=cover, fanart=fanart)
+        self.item(u'Плейлисты', self.link('playlists', {}), folder=True, cover=cover, fanart=fanart)
         self.item(u'Рекомендации', self.link('recommendations'), folder=True, cover=cover, fanart=fanart)
+
+        self.item(u'Тэги', self.link('tags', {}), folder=True, cover=cover, fanart=fanart)
 
         self.item(u'Поиск Last.fm', self.link('search-lastfm'), folder=True, cover=cover, fanart=fanart)
         self.item(u'Поиск ВКонтакте', self.link('search-vk'), folder=True, cover=cover, fanart=fanart)
@@ -271,8 +272,6 @@ class Artist(Base):
     def handle(self):
         mbid = self.argv['mbid']
         artist = self.argv['artist']
-
-        print str([mbid, artist])
 
         profile = self.get_artist(mbid, artist)
         if profile:
@@ -317,7 +316,7 @@ class Albums(Base):
                 url    = self.link('tracks', mbid=album['mbid'], name=album['name'], artist=self.argv['artist'], tags=self.argv['tags'], fromalbum=1),
                 title  = album['name'],
                 folder = True,
-                menu   = [(u'Настройки дополнения', self.link('setting'))],
+                menu   = [(u'Добавить альбом в плейлист', self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=self.argv['artist'])), (u'Настройки дополнения', self.link('setting'))],
                 menu_replace = True
             )
 
@@ -339,6 +338,8 @@ class Tracks(Base):
     def handle(self):
         if 'fromtracks' in self.argv:
             self.render_from_tracks()
+        elif 'fromplaylist' in self.argv:
+            self.render_from_playlist()
         else:
             self.render_from_album()
         self.render(content='songs', mode='list')
@@ -354,7 +355,7 @@ class Tracks(Base):
                     title  = track['name'],
                     media  = 'audio',
                     info   = {'title': track['name']},
-                    menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                    menu   = [(u'Информация', self.link('info')), (u'Добавить трэк в плейлист', self.link('playlist-add-track', artist=self.argv['artist'], song=track['name'])), (u'Добавить альбом в плейлист', self.link('playlist-add-album', mbid=self.argv['mbid'], name=self.argv['name'], artist=self.argv['artist'])), (u'Настройки дополнения', self.link('setting'))],
                     menu_replace = True
                 )
 
@@ -383,6 +384,43 @@ class Tracks(Base):
 
                 self.item(**item)
 
+
+    def render_from_playlist(self):
+        data = LASTFM.playlist.fetch(self.argv['pid'])
+        if data:
+            
+            use_artist = bool(len(dict([(x['artist'], 1) for x in data if x['artist']])) > 1)
+
+            for i, track in enumerate(data):
+                item = dict(
+                    url    = self.resolve('play-audio', artist=track['artist'], song=track['name']),
+                    title  = track['name'],
+                    media  = 'audio',
+                    info   = {'title': track['name']},
+                    menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                    menu_replace = True
+                )
+
+                item['title'] = track['name']
+                if use_artist and track['artist']:
+                    item['title'] = u'[B]' + track['artist'] + '[/B]  -  ' + item['title']
+                    
+
+                item['info']['artist'] = track['artist']
+                item['info']['album'] = track['album']
+                item['info']['duration'] = track['duration']
+
+                item['info']['tracknumber'] = i + 1
+
+                if track['image']:
+                    item['cover'] = track['image']
+                    item['fanart'] = track['image']
+                else:
+                    item['cover'] = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/noalbum.jpg')
+
+                self.item(**item)
+
+
     def render_from_tracks(self):
         for i, track in enumerate(self.get_tracks(self.argv['mbid'], self.argv['artist'])):
 
@@ -391,7 +429,7 @@ class Tracks(Base):
                 title  = track['name'],
                 media  = 'audio',
                 info   = {'title': track['name']},
-                menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                menu   = [(u'Информация', self.link('info')), (u'Добавить трэк в плейлист', self.link('playlist-add-track', artist=(track['artist']['name'] if track['artist'] else self.argv['artist']), song=track['name'])), (u'Настройки дополнения', self.link('setting'))],
                 menu_replace = True
             )
 
@@ -532,6 +570,7 @@ class PlayVideo(xbmcup.app.Handler):
         return core.google.YouTube().resolve(self.argv['vid'])
 
 
+
 class PlayAudio(xbmcup.app.Handler):
     def handle(self):
         if 'url' in self.argv:
@@ -590,30 +629,32 @@ class SearchLastFM(Base):
 
 
     def search_album(self, query):
-        albums = LASTFM.album.search(album=query, limit=200)
+        for album in LASTFM.album.search(query, limit=200):
 
-        for i, album in enumerate([x for x in self.get_album(albums) if x]):
-            if album:
+            title = album['name']
+            if album['artist']:
+                title = u'[B]' + album['artist'] + '[/B]  -  ' + title
 
-                title = album['name']
-                if albums[i]['artist']:
-                    title = u'[B]' + albums[i]['artist'] + '[/B] - ' + title
+            item = dict(
+                url    = self.link('tracks', mbid=album['mbid'], name=album['name'], artist=album['artist'], tags=[], fromalbum=1),
+                title  = title,
+                folder = True,
+                menu   = [],
+                menu_replace = True
+            )
 
-                item = dict(
-                    url    = self.link('tracks', mbid=album['mbid'], name=album['name'], artist=albums[i]['artist'], tags=[], fromalbum=1),
-                    title  = title,
-                    folder = True,
-                    menu   = [(u'Настройки дополнения', self.link('setting'))],
-                    menu_replace = True
-                )
+            if album['artist']:
+                item['menu'].append((u'Добавить альбом в плейлист', self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=album['artist'])))
 
-                if album['image']:
-                    item['cover'] = album['image']
-                    item['fanart'] = album['image']
-                else:
-                    item['cover'] = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/noalbum.jpg')
+            item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
-                self.item(**item)
+            if album['image']:
+                item['cover'] = album['image']
+                item['fanart'] = album['image']
+            else:
+                item['cover'] = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/noalbum.jpg')
+
+            self.item(**item)
 
         self.render(content='albums', mode='list')
 
@@ -622,10 +663,10 @@ class SearchLastFM(Base):
 
             item = dict(
                 url    = self.resolve('play-audio', artist=track['artist'], song=track['name']),
-                title  = u'[B]' + track['artist'] + '[/B] - ' + track['name'],
+                title  = u'[B]' + track['artist'] + '[/B]  -  ' + track['name'],
                 media  = 'audio',
                 info   = {'title': track['name']},
-                menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                menu   = [(u'Информация', self.link('info')), (u'Добавить трэк в плейлист', self.link('playlist-add-track', artist=track['artist'], song=track['name'])), (u'Настройки дополнения', self.link('setting'))],
                 menu_replace = True
             )
 
@@ -683,11 +724,61 @@ class SearchVK(xbmcup.app.Handler):
         self.render(content='songs', mode='list')
 
 
+
+
 class Recommendations(Base):
     def handle(self):
         self.render_artists(LASTFM.user.getRecommendedArtists(limit=200))
         self.render(content='artists', mode='thumb')
 
+
+
+
+class BasePlayList(xbmcup.app.Handler):
+    def playlist_create(self):
+        title = xbmcup.gui.prompt(u'Название плейлиста:')
+        return LASTFM.playlist.create(title) if title else None
+
+    def playlist_add(self, data):
+        playlists = [(x['id'], x['title']) for x in LASTFM.user.getPlaylists()]
+        playlists.append(('create', u'[COLOR FF0DA09E]Создать плейлист[/COLOR]'))
+        playlist = xbmcup.gui.select(u'Выберите плейлист:', playlists)
+        if playlist == 'create':
+            playlist = self.playlist_create()
+        if playlist:
+            for track in data:
+                LASTFM.playlist.addTrack(playlist, track['song'], track['artist'])
+
+
+class PlayLists(BasePlayList):
+    def handle(self):
+        if 'create' in self.argv:
+            self.playlist_create()
+
+        data = LASTFM.user.getPlaylists()
+
+        for playlist in data:
+            if not playlist['image']:
+                playlist['image'] = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/noalbum.jpg')
+
+            self.item(playlist['title'], self.link('tracks', pid=playlist['id'], fromplaylist=1), folder=True, cover=playlist['image'], fanart=self.parent.fanart)
+
+        self.item(u'[COLOR FF0DA09E]Создать плейлист[/COLOR]', self.replace('playlists', create=1), folder=True, cover=xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/add.png'), fanart=self.parent.fanart)
+        
+        self.render(mode='list')
+
+
+class PlayListAddTrack(BasePlayList):
+    def handle(self):
+        self.playlist_add([dict(song=self.argv['song'], artist=self.argv['artist'])])
+
+
+class PlayListAddAlbum(Base, BasePlayList):
+    def handle(self):
+        album = self.get_album(self.argv['mbid'], self.argv['name'], self.argv['artist'])
+        if album:
+            self.playlist_add([dict(artist=self.argv['artist'], song=x['name']) for x in album['tracks']])
+        
 
 
 
@@ -702,6 +793,7 @@ class Info(xbmcup.app.Handler):
 class Setting(xbmcup.app.Handler):
     def handle(self):
         xbmcup.gui.setting()
+
 
 class ClearCache(xbmcup.app.Handler):
     def handle(self):
@@ -735,6 +827,10 @@ plugin.route('search-lastfm', SearchLastFM)
 plugin.route('search-vk', SearchVK)
 
 plugin.route('recommendations', Recommendations)
+
+plugin.route('playlists', PlayLists)
+plugin.route('playlist-add-track', PlayListAddTrack)
+plugin.route('playlist-add-album', PlayListAddAlbum)
 
 plugin.route('info', Info)
 plugin.route('setting', Setting)
