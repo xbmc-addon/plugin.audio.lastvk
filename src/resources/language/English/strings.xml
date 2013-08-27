@@ -1,6 +1,7 @@
 <strings>
-	<string id="30001">Login VK</string>
-	<string id="30002">Password VK</string>
-	<string id="30003">Login LastFM</string>
-	<string id="30004">Password LastFM</string>
+	<string id="30001">VK username</string>
+	<string id="30002">VK password</string>
+	<string id="30003">Last.fm username</string>
+	<string id="30004">Last.fm password</string>
+    <string id="30005">Submit songs to Last.fm</string>
 </strings>

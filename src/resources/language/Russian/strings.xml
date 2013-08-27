@@ -1,6 +1,7 @@
 <strings>
-	<string id="30001">Логин VK</string>
-	<string id="30002">Пароль VK</string>
-	<string id="30003">Логин LastFM</string>
-	<string id="30004">Пароль LastFM</string>
+	<string id="30001">Логин ВКонтакте</string>
+	<string id="30002">Пароль ВКонтакте</string>
+	<string id="30003">Логин Last.fm</string>
+	<string id="30004">Пароль Last.fm</string>
+    <string id="30005">Отправлять статистику на Last.fm</string>
 </strings>

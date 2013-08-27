@@ -8,6 +8,12 @@ import xbmcup.net
 import xbmcup.app
 import xbmcup.gui
 
+AUTH_METHOD = (
+    'user.getRecommendedArtists',
+    'track.updateNowPlaying',
+    'track.scrobble'
+)
+
 
 class LastFMError(Exception):
     __slots__ = ["error"]
@@ -35,6 +41,10 @@ class _Base:
         if not convert:
             convert = unicode
         return [convert(x) for x in [x.text for x in xml.findall(path)] if x]
+
+    def compile(self, **kwargs):
+        return dict([(k, v) for k, v in kwargs.iteritems() if v is not None])
+
 
 
 
@@ -97,13 +107,8 @@ class _Artist(_Base):
 
 
     def getTopTracks(self, mbid=None, artist=None, limit=None, page=None):
-        params = dict(autocorrect=1)
-
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
-
+        params = self.compile(limit=limit, page=page, autocorrect=1)
+        
         if mbid:
             params['mbid'] = mbid
         else:
@@ -136,12 +141,7 @@ class _Artist(_Base):
 
 
     def getTopAlbums(self, mbid=None, artist=None, limit=None, page=None):
-        params = dict(autocorrect=1)
-
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
+        params = self.compile(limit=limit, page=page, autocorrect=1)
 
         if mbid:
             params['mbid'] = mbid
@@ -155,16 +155,14 @@ class _Artist(_Base):
             name = xml.findtext('./name') or ''
             artist = xml.findtext('./artist/name') or ''
             if mbid or (name and artist):
-                result.append(dict(mbid=mbid, name=unicode(name), artist=unicode(artist)))
+                img = self.get_text_list(xml, './image')
+                result.append(dict(mbid=mbid, name=unicode(name), artist=unicode(artist), image=(img[-1] if img else None)))
 
         return result
 
 
     def getSimilar(self, mbid=None, artist=None, limit=None):
-        params = dict(autocorrect=1)
-
-        if limit:
-            params['limit'] = limit
+        params = self.compile(limit=limit, autocorrect=1)
 
         if mbid:
             params['mbid'] = mbid
@@ -175,22 +173,20 @@ class _Artist(_Base):
         for xml in ET.fromstring(self.api('artist.getSimilar', **params)).findall('./similarartists/artist'):
             name = xml.findtext('./name')
             if name:
-                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or '')))
+                img = self.get_text_list(xml, './image')
+                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or ''), image=(img[-1] if img else None)))
         return result
 
 
     def search(self, artist, limit=None, page=None):
-        params = dict(artist=artist)
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
+        params = self.compile(limit=limit, page=page, artist=artist)
 
         result = []
         for xml in ET.fromstring(self.api('artist.search', **params)).findall('./results/artistmatches/artist'):
             name = xml.findtext('./name')
             if name:
-                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or '')))
+                img = self.get_text_list(xml, './image')
+                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or ''), image=(img[-1] if img else None)))
         return result
         
 
@@ -245,11 +241,7 @@ class _Album(_Base):
 
 
     def search(self, album, limit=None, page=None):
-        params = dict(album=album)
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
+        params = self.compile(limit=limit, page=page, album=album)
 
         result = []
         for xml in ET.fromstring(self.api('album.search', **params)).findall('./results/albummatches/album'):
@@ -264,13 +256,7 @@ class _Album(_Base):
 
 class _Track(_Base):
     def search(self, track, artist=None, limit=None, page=None):
-        params = dict(track=track)
-        if artist:
-            params['artist'] = artist
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
+        params = self.compile(limit=limit, page=page, artist=artist, track=track)
 
         result = []
         for xml in ET.fromstring(self.api('track.search', **params)).findall('./results/trackmatches/track'):
@@ -286,6 +272,13 @@ class _Track(_Base):
             
         return result
 
+    def updateNowPlaying(self, artist, track, album=None, trackNumber=None, context=None, mbid=None, duration=None, albumArtist=None):
+        params = self.compile(artist=artist, track=track, album=album, trackNumber=trackNumber, context=context, mbid=mbid, duration=duration, albumArtist=albumArtist)
+        self.api('track.updateNowPlaying', **params)
+
+    def scrobble(self, artist, track, timestamp, album=None, context=None, streamId=None, chosenByUser=None, trackNumber=None, mbid=None, albumArtist=None, duration=None):
+        params = self.compile(artist=artist, track=track, timestamp=timestamp, album=album, context=context, streamId=streamId, chosenByUser=chosenByUser, trackNumber=trackNumber, mbid=mbid, albumArtist=albumArtist, duration=duration)
+        self.api('track.scrobble', **params)
 
 
 class _Tag(_Base):
@@ -298,21 +291,19 @@ class _Tag(_Base):
         return result
 
     def getTopArtists(self, tag, limit=None, page=None):
-        limit = limit or 50
-        page = page or 1
+        params = self.compile(limit=limit, page=page, tag=tag)
+
         result = []
-        for xml in ET.fromstring(self.api('tag.getTopArtists', tag=tag, limit=limit, page=page)).findall('./topartists/artist'):
+        for xml in ET.fromstring(self.api('tag.getTopArtists', **params)).findall('./topartists/artist'):
             name = xml.findtext('./name')
             if name:
-                result.append({'name': unicode(name), 'mbid': (xml.findtext('./mbid') or '')})
+                img = self.get_text_list(xml, './image')
+                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or ''), image=(img[-1] if img else None)))
         return result
 
     def search(self, tag, limit=None, page=None):
-        params = dict(tag=tag)
-        if limit:
-            params['limit'] = limit
-        if page:
-            params['page'] = page
+        params = self.compile(limit=limit, page=page, tag=tag)
+
         result = []
         for tag in ET.fromstring(self.api('tag.search', **params)).findall('./results/tagmatches/tag'):
             name = tag.findtext('name')
@@ -322,47 +313,66 @@ class _Tag(_Base):
 
 
 
+class _User(_Base):
+    def getRecommendedArtists(self, limit=None, page=None):
+        params = self.compile(limit=limit, page=page)
+        
+        result = []
+        for xml in ET.fromstring(self.api('user.getRecommendedArtists', **params)).findall('./recommendations/artist'):
+            name = xml.findtext('./name')
+            if name:
+                img = self.get_text_list(xml, './image')
+                result.append(dict(name=unicode(name), mbid=(xml.findtext('./mbid') or ''), image=(img[-1] if img else None)))
+        return result
+
+
+
 class LastFM(object):
     RE_ERROR = re.compile('<error code="([0-9]+)">([^<]+)</error>', re.S)
 
-    def __init__(self, api_key, secret_key, setting_login, setting_passowrd, setting_session_key):
-        self._setting = dict(api_key=api_key, secret_key=secret_key, login=setting_login, password=setting_passowrd, session_key=setting_session_key)
+    def __init__(self, api_key, secret_key, plugin, login, password, session_key):
+        self._api_key = api_key
+        self._secret_key = secret_key
+        self._login = login
+        self._password = password
+        self._session_key = session_key
+
+        self._setting = xbmcup.app.Setting(plugin)
 
         self.artist = _Artist(self.api)
-        self.album = _Album(self.api)
-        self.track = _Track(self.api)
-        self.tag = _Tag(self.api)
+        self.album  = _Album(self.api)
+        self.track  = _Track(self.api)
+        self.tag    = _Tag(self.api)
+        self.user   = _User(self.api)
 
     
     def api(self, method, **kwargs):
         kwargs['method'] = method
-        kwargs['api_key'] = self._setting['api_key']
+        kwargs['api_key'] = self._api_key
 
-        if 'auth' in kwargs and kwargs['auth']:
-            del kwargs['auth']
-
+        if method in AUTH_METHOD:
             while True:
-                session_key = self._session()
-                if session_key is None:
+                sk = self._session()
+                if sk is None:
                     return None
 
-                result = self._api('post', session_key, **kwargs)
+                result = self._api('post', sk, **kwargs)
                 if result is None:
-                    xbmcup.app.setting[self._setting['session_key']] = ''
+                    xbmcup.app.setting[self._session_key] = ''
                 else:
                     return result
         else:
             return self._api('get', None, **kwargs)
 
 
-    def _api(self, http_method, session_key, **kwargs):
+    def _api(self, http_method, sk, **kwargs):
         params = {}
-        if session_key:
-            params['sk'] = session_key
+        if sk:
+            params['sk'] = sk
         params.update(kwargs)
-        params['api_sig'] = self._sig(params)
 
         if http_method == 'post':
+            params['api_sig'] = self._sig(params)
             response = xbmcup.net.http.post('https://ws.audioscrobbler.com/2.0/', data=params)
         else:
             response = xbmcup.net.http.get('http://ws.audioscrobbler.com/2.0/', params=params)
@@ -381,45 +391,47 @@ class LastFM(object):
 
 
     def _session(self):
-        session_key = xbmcup.app.setting[self._setting['session_key']]
-        if session_key:
-            return session_key
+        sk = self._setting[self._session_key]
+        if sk:
+            return sk
 
         while True:
-            login = xbmcup.app.setting[self._setting['login']]
-            password = xbmcup.app.setting[self._setting['password']]
+            login = self._setting[self._login]
+            password = self._setting[self._password]
 
             if login and password:
-                session_key = self._auth(login, password)
-                if session_key:
-                    xbmcup.app.setting[self._setting['session_key']] = session_key
-                    return session_key
+                sk = self._auth(login, password)
+                if sk:
+                    self._setting[self._session_key] = sk
+                    return sk
 
-                xbmcup.app.setting[self._setting['login']] = ''
-                xbmcup.app.setting[self._setting['password']] = ''
+                self._setting[self._login] = ''
+                self._setting[self._password] = ''
 
             while True:
-                login = xbmcup.gui.prompt(u'Login LastFM')
+                login = xbmcup.gui.prompt(u'Last.fm username')
                 if login is None:
                     return None
                 if login:
                     break
 
             while True:
-                password = xbmcup.gui.password(u'Password LastFM')
+                password = xbmcup.gui.password(u'Last.fm password')
                 if password is None:
                     return None
                 if password:
                     break
 
-            xbmcup.app.setting[self._setting['login']] = login
-            xbmcup.app.setting[self._setting['password']] = password
+            self._setting[self._login] = login
+            self._setting[self._password] = password
 
 
 
     def _auth(self, login, password):
-        res = self._api('post', None, **dict(method='auth.getMobileSession', api_key=self._setting['api_key'], username=login, password=password))
-        return res['session']['key'] if res else None
+        res = self._api('post', None, **dict(method='auth.getMobileSession', api_key=self._api_key, username=login, password=password))
+        if not res:
+            return None
+        return ET.fromstring(res).findtext('./session/key') or None
 
         
     def _sig(self, params):
@@ -429,5 +441,5 @@ class LastFM(object):
         for key in keys:
             line += str(key)
             line += params[key].encode('utf8') if isinstance(params[key], unicode) else str(params[key])
-        line += self._setting['secret_key']
+        line += self._secret_key
         return hashlib.md5(line).hexdigest()

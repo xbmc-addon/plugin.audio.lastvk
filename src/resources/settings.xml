@@ -7,4 +7,5 @@
     <setting id="lastfm_login" type="text" label="30003" default="" />
     <setting id="lastfm_password" type="text" label="30004" option="hidden" default="" />
     <setting id="lastfm_session_key" type="text" visible="false" default="" />
+    <setting id="lastfm_scrobbling" type="bool" label="30005" values="false" default="false" />
 </settings>

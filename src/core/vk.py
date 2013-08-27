@@ -70,7 +70,7 @@ class VK(object):
 
 
     def _captcha(self, url):
-        return xbmcup.gui.captcha(url, 130, 50, title='Enter code:')
+        return xbmcup.gui.captcha(url, 130, 50, title='Enter code')
 
 
     def _token(self):
@@ -92,14 +92,14 @@ class VK(object):
                 xbmcup.app.setting[self._setting['password']] = ''
 
             while True:
-                login = xbmcup.gui.prompt(u'Login VK')
+                login = xbmcup.gui.prompt(u'VK username')
                 if login is None:
                     return None
                 if login:
                     break
 
             while True:
-                password = xbmcup.gui.password(u'Password VK')
+                password = xbmcup.gui.password(u'VK password')
                 if password is None:
                     return None
                 if password:
