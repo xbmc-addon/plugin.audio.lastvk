@@ -11,6 +11,9 @@ import xbmcup.app
 import xbmcup.gui
 
 AUTH_METHOD = (
+    'library.getArtists',
+    'library.getAlbums',
+    'library.getTracks',
     'playlist.create',
     'playlist.addTrack',
     'user.getRecommendedArtists',
@@ -20,6 +23,9 @@ AUTH_METHOD = (
 )
 
 USER_METHOD = (
+    'library.getArtists',
+    'library.getAlbums',
+    'library.getTracks',
     'user.getPlaylists',
 )
 
@@ -263,6 +269,81 @@ class _Album(_Base):
         return result
 
 
+class _Library(_Base):
+    def getArtists(self, limit=None, page=None):
+        params = self.compile(limit=limit, page=page)
+        root = ET.fromstring(self.api('library.getArtists', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./artists')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = []
+        )
+
+        for xml in root.findall('./artist'):
+            name = xml.findtext('./name') or ''
+            if name:
+                img = self.get_text_list(xml, './image')
+                result['data'].append(dict(mbid=(xml.findtext('./mbid') or ''), name=unicode(name), image=(img[-1] if img else None)))
+        return result
+        
+
+    def getAlbums(self, artist=None, limit=None, page=None):
+        params = self.compile(artist=artist, limit=limit, page=page)
+        root = ET.fromstring(self.api('library.getAlbums', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./albums')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = []
+        )
+
+        for xml in root.findall('./album'):
+            name = xml.findtext('./name') or ''
+            if name:
+                img = self.get_text_list(xml, './image')
+                result['data'].append(dict(mbid=(xml.findtext('./mbid') or ''), name=unicode(name), artist=unicode(xml.findtext('./artist/name') or ''), image=img[-1] if img else None))
+        return result
+
+
+    def getTracks(self, artist=None, album=None, limit=None, page=None):
+        params = self.compile(limit=limit, page=page, artist=artist)
+        if artist and album:
+            params['album'] = album
+        root = ET.fromstring(self.api('library.getTracks', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./tracks')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = []
+        )
+
+        for xml in root.findall('./track'):
+            name = xml.findtext('./name') or ''
+            if name:
+                img = self.get_text_list(xml, './image')
+                result['data'].append(dict(
+                    name=unicode(name),
+                    artist=unicode(xml.findtext('./artist/name') or ''),
+                    album=unicode(xml.findtext('./album/name') or ''),
+                    duration = int(xml.findtext('./duration') or 0)/1000,
+                    image=img[-1] if img else None
+                ))
+        return result
+
+
 class _PlayList(_Base):
     def fetch(self, pid):
         result = []
@@ -351,7 +432,6 @@ class _Tag(_Base):
 class _User(_Base):
     def getRecommendedArtists(self, limit=None, page=None):
         params = self.compile(limit=limit, page=page)
-        
         result = []
         for xml in ET.fromstring(self.api('user.getRecommendedArtists', **params)).findall('./recommendations/artist'):
             name = xml.findtext('./name')
@@ -386,6 +466,7 @@ class LastFM(object):
 
         self.artist = _Artist(self.api)
         self.album  = _Album(self.api)
+        self.library = _Library(self.api)
         self.playlist  = _PlayList(self.api)
         self.track  = _Track(self.api)
         self.tag    = _Tag(self.api)

@@ -43,6 +43,7 @@ class Player(xbmc.Player):
 
             artist = info.getArtist()
             track = info.getTitle()
+            album = info.getAlbum()
             duration = int(self.getTotalTime() or info.getDuration())
 
             if self.data is None or self.data[0] != artist or self.data[1] != track:
@@ -50,7 +51,7 @@ class Player(xbmc.Player):
                 if timeout > 250: # > 4:10 min
                     timeout = 250
 
-                self.data = artist, track, duration, int(time.time()), (int(time.time()) + timeout)
+                self.data = artist, track, album, duration, int(time.time()), (int(time.time()) + timeout)
                 self.started = True
 
 
@@ -65,10 +66,10 @@ class Player(xbmc.Player):
 
         if self.started:
             self.started = False
-            return 'start', self.data[0], self.data[1], self.data[2]
+            return 'start', self.data[0], self.data[1], self.data[2], self.data[3]
 
-        if self.data and self.data[2] > 30 and int(time.time()) > self.data[4]:
-            data = 'scrobble', self.data[0], self.data[1], self.data[2], self.data[3]
+        if self.data and self.data[3] > 30 and int(time.time()) > self.data[5]:
+            data = 'scrobble', self.data[0], self.data[1], self.data[2], self.data[3], self.data[4]
             self.data = None
             return data
 
@@ -86,26 +87,26 @@ class Service(xbmcup.app.Service):
             if data:
                 if data[0] == 'start':
                     try:
-                        self.now_playing(data[1], data[2], data[3])
+                        self.now_playing(data[1], data[2], data[3], data[4])
                     except:
                         xbmcup.log.error(traceback.format_exc())
 
                 else:
                     try:
-                        self.scrobble(data[1], data[2], data[3], data[4])
+                        self.scrobble(data[1], data[2], data[3], data[4], data[5])
                     except:
                         xbmcup.log.error(traceback.format_exc())
 
         return 1
 
-    def now_playing(self, artist, track, duration):
+    def now_playing(self, artist, track, album, duration):
         if bool(xbmcaddon.Addon(id='plugin.audio.lastvk').getSetting(id='lastfm_scrobbling') == 'true'):
-            LASTFM.track.updateNowPlaying(artist=artist, track=track, duration=duration)
+            LASTFM.track.updateNowPlaying(artist=artist, track=track, album=album, duration=duration)
 
 
-    def scrobble(self, artist, track, duration, timestamp):
+    def scrobble(self, artist, track, album, duration, timestamp):
         if bool(xbmcaddon.Addon(id='plugin.audio.lastvk').getSetting(id='lastfm_scrobbling') == 'true'):
-            LASTFM.track.scrobble(artist=artist, track=track, timestamp=timestamp, duration=duration)
+            LASTFM.track.scrobble(artist=artist, track=track, album=album, timestamp=timestamp, duration=duration)
 
 
 xbmcup.log.notice('Last.VK service started')
