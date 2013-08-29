@@ -58,7 +58,8 @@ class ChartTracks(xbmcup.app.Handler):
                 )
 
                 item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
+                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
+                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=track['artist'], track=track['name'])))
                 item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
                 item['info']['artist'] = track['artist']

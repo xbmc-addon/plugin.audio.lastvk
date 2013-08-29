@@ -11,9 +11,15 @@ import xbmcup.app
 import xbmcup.gui
 
 AUTH_METHOD = (
+    'library.addArtist',
+    'library.addAlbum',
+    'library.addTrack',
     'library.getArtists',
     'library.getAlbums',
     'library.getTracks',
+    'library.removeArtist',
+    'library.removeAlbum',
+    'library.removeTrack',
     'playlist.create',
     'playlist.addTrack',
     'user.getRecommendedArtists',
@@ -334,6 +340,15 @@ class _Chart(_Base):
 
 
 class _Library(_Base):
+    def addArtist(self, artist):
+        self.api('library.addArtist', artist=artist)
+
+    def addAlbum(self, artist, album):
+        self.api('library.addAlbum', artist=artist, album=album)
+
+    def addTrack(self, artist, track):
+        self.api('library.addTrack', artist=artist, track=track)
+
     def getArtists(self, limit=None, page=None):
         params = self.compile(limit=limit, page=page)
         root = ET.fromstring(self.api('library.getArtists', **params))
@@ -406,6 +421,15 @@ class _Library(_Base):
                     image=img[-1] if img else None
                 ))
         return result
+
+    def removeArtist(self, artist):
+        self.api('library.removeArtist', artist=artist)
+
+    def removeAlbum(self, artist, album):
+        self.api('library.removeAlbum', artist=artist, album=album)
+
+    def removeTrack(self, artist, track):
+        self.api('library.removeTrack', artist=artist, track=track)
 
 
 class _PlayList(_Base):

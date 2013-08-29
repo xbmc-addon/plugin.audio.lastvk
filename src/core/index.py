@@ -9,8 +9,8 @@ class Index(xbmcup.app.Handler):
         cover = xbmcup.system.fs('home://addons/plugin.audio.lastvk/icon.png')
         fanart = xbmcup.system.fs('home://addons/plugin.audio.lastvk/fanart.jpg')
 
-        self.item(u'Библиотека', self.link('library'), folder=True, cover=cover, fanart=fanart)
         self.item(u'Плейлисты', self.link('playlists'), folder=True, cover=cover, fanart=fanart)
+        self.item(u'Библиотека', self.link('library'), folder=True, cover=cover, fanart=fanart)
         self.item(u'Рекомендации', self.link('recommendations'), folder=True, cover=cover, fanart=fanart)
 
         self.item(u'Чарты', self.link('chart'), folder=True, cover=cover, fanart=fanart)

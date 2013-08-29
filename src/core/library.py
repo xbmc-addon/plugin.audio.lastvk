@@ -16,6 +16,10 @@ class Library(xbmcup.app.Handler):
 
 class LibraryArtists(xbmcup.app.Handler, RenderArtists):
     def handle(self):
+        if 'delete' in self.argv:
+            lastfm.library.removeArtist(artist=self.argv['delete'])
+
+
         page = self.argv.get('page', 1)
 
         data = lastfm.library.getArtists(limit=100, page=page)
@@ -24,7 +28,7 @@ class LibraryArtists(xbmcup.app.Handler, RenderArtists):
             if data['page'] > 1:
                 self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('library-artists', page=page - 1), folder=True, cover=COVER_BACKWARD)
 
-            self.render_artists(data['data'], 'library-artist')
+            self.render_artists(data['data'], page=page, url='library-artist')
             
             if data['page'] != data['totalPages']:
                 self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('library-artists', page=page + 1), folder=True, cover=COVER_FORWARD)
@@ -44,9 +48,12 @@ class LibraryArtist(xbmcup.app.Handler):
 
 class LibraryAlbums(xbmcup.app.Handler):
     def handle(self):
+        if 'delete' in self.argv:
+            lastfm.library.removeAlbum(artist=self.argv['delete'][0], album=self.argv['delete'][1])
+
         artist = self.argv.get('artist')
         page = self.argv.get('page', 1)
-        
+
         data = lastfm.library.getAlbums(artist=artist, limit=100, page=page)
         if data:
             
@@ -63,9 +70,13 @@ class LibraryAlbums(xbmcup.app.Handler):
                     url    = self.link('library-tracks', album=album['name'], artist=album['artist'] or artist),
                     title  = title,
                     folder = True,
-                    menu   = [(u'Добавить альбом в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=album['artist'] or artist)), (u'Настройки дополнения', self.link('setting'))],
+                    menu   = [],
                     menu_replace = True
                 )
+
+                item['menu'].append((u'Добавить альбом в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=album['artist'] or artist)))
+                item['menu'].append((u'Удалить из библиотеки', self.replace('library-albums', artist=artist, page=page, delete=(album['artist'] or artist, album['name']))))
+                item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
                 if album['image']:
                     item['cover'] = album['image']
@@ -86,6 +97,9 @@ class LibraryAlbums(xbmcup.app.Handler):
 
 class LibraryTracks(xbmcup.app.Handler):
     def handle(self):
+        if 'delete' in self.argv:
+            lastfm.library.removeTrack(artist=self.argv['delete'][0], track=self.argv['delete'][1])
+
         artist = self.argv.get('artist')
         album = self.argv.get('album')
         page = self.argv.get('page', 1)
@@ -113,6 +127,7 @@ class LibraryTracks(xbmcup.app.Handler):
 
                 item['menu'].append((u'Информация', self.link('info')))
                 item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
+                item['menu'].append((u'Удалить из библиотеки', self.replace('library-tracks', artist=artist, album=album, page=page, delete=(track['artist'], track['name']))))
                 item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
                 item['info']['artist'] = track['artist']
@@ -139,4 +154,17 @@ class LibraryTracks(xbmcup.app.Handler):
 
         self.render(content='songs', mode='list')
 
+
+class LibraryAdd(xbmcup.app.Handler):
+    def handle(self):
+        artist = self.argv.get('artist')
+        album = self.argv.get('album')
+        track = self.argv.get('track')
+
+        if artist and album:
+            lastfm.library.addAlbum(artist=artist, album=album)
+        elif artist and track:
+            lastfm.library.addTrack(artist=artist, track=track)
+        elif artist:
+            lastfm.library.addArtist(artist=artist)
 

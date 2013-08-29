@@ -84,7 +84,7 @@ class RenderArtists:
         return dict([(x, result['fanarttv:artist:' + x]) for x in mbids])
 
 
-    def render_artists(self, artists, url=None):
+    def render_artists(self, artists, page=1, url=None):
         if not url:
             url = 'artist'
 
@@ -96,9 +96,15 @@ class RenderArtists:
                 url    = self.link(url, mbid=artist['mbid'], artist=artist['name']),
                 title  = artist['name'],
                 folder = True,
-                menu   = [(u'Настройки дополнения', self.link('setting'))],
+                menu   = [],
                 menu_replace = True
             )
+
+            if url == 'library-artist':
+                item['menu'].append((u'Удалить из библиотеки', self.replace('library-artists', delete=artist['name'], page=page)))
+            else:
+                item['menu'].append((u'Добавить в библиотеку', self.replace('library-add', artist=artist['name'])))
+            item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
             if artist['image']:
                 item['cover'] = artist['image']

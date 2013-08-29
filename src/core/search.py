@@ -47,7 +47,8 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
             )
 
             if album['artist']:
-                item['menu'].append((u'Добавить альбом в плейлист', self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=album['artist'])))
+                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=album['artist'])))
+                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=album['artist'], album=album['name'])))
 
             item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
@@ -70,10 +71,15 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
                 title  = u'[B]' + track['artist'] + '[/B]  -  ' + track['name'],
                 media  = 'audio',
                 info   = {'title': track['name']},
-                menu   = [(u'Информация', self.link('info')), (u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])), (u'Настройки дополнения', self.link('setting'))],
+                menu   = [],
                 menu_replace = True
             )
 
+            item['menu'].append((u'Информация', self.link('info')))
+            item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
+            item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=track['artist'], track=track['name'])))
+            item['menu'].append((u'Настройки дополнения', self.link('setting')))
+            
             item['info']['artist'] = track['artist']
             
             item['info']['tracknumber'] = i + 1

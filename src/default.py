@@ -8,7 +8,7 @@ from core.index     import Index, Info, Setting
 from core.vkontakte import IndexVK, TracksVK
 from core.chart     import Chart, ChartArtists, ChartTracks
 from core.playlist  import Playlist, PlaylistAdd, PlaylistTracks
-from core.library   import Library, LibraryArtists, LibraryArtist, LibraryAlbums, LibraryTracks
+from core.library   import Library, LibraryArtists, LibraryArtist, LibraryAlbums, LibraryTracks, LibraryAdd
 from core.search    import SearchLastFM, SearchVK
 from core.play      import PlayVideo, PlayAudio
 from core.artist    import Artist, Albums, AlbumTracks, Tracks, Similar, Bio, Videos
@@ -36,6 +36,7 @@ plugin.route('library-artists',  LibraryArtists)
 plugin.route('library-artist',   LibraryArtist)
 plugin.route('library-albums',   LibraryAlbums)
 plugin.route('library-tracks',   LibraryTracks)
+plugin.route('library-add',      LibraryAdd)
 
 plugin.route('playlists',        Playlist)
 plugin.route('playlist-add',     PlaylistAdd)

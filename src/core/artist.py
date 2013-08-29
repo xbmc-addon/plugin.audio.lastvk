@@ -151,9 +151,13 @@ class Albums(GetAlbums):
                 url    = self.link('album-tracks', mbid=album['mbid'], album=album['name'], artist=self.argv['artist'], tags=self.argv['tags']),
                 title  = album['name'],
                 folder = True,
-                menu   = [(u'Добавить альбом в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=self.argv['artist'])), (u'Настройки дополнения', self.link('setting'))],
+                menu   = [],
                 menu_replace = True
             )
+
+            item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=self.argv['artist'])))
+            item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=self.argv['artist'], album=album['name'])))
+            item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
             if album['image']:
                 item['cover'] = album['image']
@@ -189,8 +193,8 @@ class AlbumTracks(Base):
                 )
 
                 item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=artist, song=track['name'])))
-                item['menu'].append((u'Добавить альбом в плейлист', self.link('playlist-add', mbid=mbid, album=data['name'], artist=artist)))
+                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=artist, song=track['name'])))
+                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=artist, track=track['name'])))
                 item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
 
@@ -241,7 +245,8 @@ class Tracks(Base):
                 )
 
                 item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=(track['artist']['name'] if track['artist'] else artist), song=track['name'])))
+                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=(track['artist']['name'] if track['artist'] else artist), song=track['name'])))
+                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=(track['artist']['name'] if track['artist'] else artist), track=track['name'])))
                 item['menu'].append((u'Настройки дополнения', self.link('setting')))
 
                 item['info']['artist'] = track['artist']['name'] if track['artist'] else self.argv['artist']
