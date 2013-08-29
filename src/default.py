@@ -5,6 +5,7 @@ import xbmcup.system
 
 
 # HANDLERS
+from core.chart     import Chart, ChartArtists, ChartTracks
 from core.playlist  import Playlist, PlaylistAdd, PlaylistTracks
 from core.library   import Library, LibraryArtists, LibraryArtist, LibraryAlbums, LibraryTracks
 from core.search    import SearchLastFM, SearchVK
@@ -23,10 +24,10 @@ class Index(xbmcup.app.Handler):
         fanart = xbmcup.system.fs('home://addons/plugin.audio.lastvk/fanart.jpg')
 
         self.item(u'Библиотека', self.link('library'), folder=True, cover=cover, fanart=fanart)
-        self.item(u'Плейлисты', self.link('playlists', {}), folder=True, cover=cover, fanart=fanart)
+        self.item(u'Плейлисты', self.link('playlists'), folder=True, cover=cover, fanart=fanart)
         self.item(u'Рекомендации', self.link('recommendations'), folder=True, cover=cover, fanart=fanart)
 
-        self.item(u'Тэги', self.link('tags', {}), folder=True, cover=cover, fanart=fanart)
+        self.item(u'Чарты', self.link('chart'), folder=True, cover=cover, fanart=fanart)
 
         self.item(u'Поиск Last.fm', self.link('search-lastfm'), folder=True, cover=cover, fanart=fanart)
         self.item(u'Поиск ВКонтакте', self.link('search-vk'), folder=True, cover=cover, fanart=fanart)
@@ -70,6 +71,10 @@ plugin.route('library-tracks',   LibraryTracks)
 plugin.route('playlists',        Playlist)
 plugin.route('playlist-add',     PlaylistAdd)
 plugin.route('playlist-tracks',  PlaylistTracks)
+
+plugin.route('chart',            Chart)
+plugin.route('chart-artists',    ChartArtists)
+plugin.route('chart-tracks',     ChartTracks)
 
 plugin.route('search-lastfm',    SearchLastFM)
 plugin.route('search-vk',        SearchVK)

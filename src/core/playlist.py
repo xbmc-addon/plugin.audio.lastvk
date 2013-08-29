@@ -25,7 +25,7 @@ class BasePlaylist(xbmcup.app.Handler):
 
 class Playlist(BasePlaylist):
     def handle(self):
-        if 'create' in self.argv:
+        if self.argv and 'create' in self.argv:
             self.playlist_create()
 
         for playlist in lastfm.user.getPlaylists():

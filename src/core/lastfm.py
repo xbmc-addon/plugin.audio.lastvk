@@ -269,6 +269,70 @@ class _Album(_Base):
         return result
 
 
+class _Chart(_Base):
+    def getTopTags(self, limit=None, page=None):
+        params = self.compile(limit=limit, page=page)
+        root = ET.fromstring(self.api('chart.getTopTags', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./tags')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = self.get_text_list(root, './tag/name')
+        )
+        return result
+
+    def getTopArtists(self, limit=None, page=None):
+        params = self.compile(limit=limit, page=page)
+        root = ET.fromstring(self.api('chart.getTopArtists', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./artists')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = []
+        )
+
+        for xml in root.findall('./artist'):
+            name = xml.findtext('./name') or ''
+            if name:
+                img = self.get_text_list(xml, './image')
+                result['data'].append(dict(mbid=(xml.findtext('./mbid') or ''), name=unicode(name), image=(img[-1] if img else None)))
+        return result
+
+    def getTopTracks(self, limit=None, page=None):
+        params = self.compile(limit=limit, page=page)
+        root = ET.fromstring(self.api('chart.getTopTracks', **params))
+        if root.get('status', 'fail') != 'ok':
+            return
+
+        root = root.find('./tracks')
+        
+        result = dict(
+            page = int(root.get('page', 0)),
+            totalPages = int(root.get('totalPages', 0)),
+            data = []
+        )
+
+        for xml in root.findall('./track'):
+            name = xml.findtext('./name') or ''
+            if name:
+                img = self.get_text_list(xml, './image')
+                result['data'].append(dict(
+                    name=unicode(name),
+                    artist=unicode(xml.findtext('./artist/name') or ''),
+                    duration = int(xml.findtext('./duration') or 0),
+                    image=img[-1] if img else None
+                ))
+        return result
+
+
 class _Library(_Base):
     def getArtists(self, limit=None, page=None):
         params = self.compile(limit=limit, page=page)
@@ -290,7 +354,7 @@ class _Library(_Base):
                 img = self.get_text_list(xml, './image')
                 result['data'].append(dict(mbid=(xml.findtext('./mbid') or ''), name=unicode(name), image=(img[-1] if img else None)))
         return result
-        
+
 
     def getAlbums(self, artist=None, limit=None, page=None):
         params = self.compile(artist=artist, limit=limit, page=page)
@@ -464,13 +528,14 @@ class LastFM(object):
         self._password = password
         self._session_key = session_key
 
-        self.artist = _Artist(self.api)
-        self.album  = _Album(self.api)
-        self.library = _Library(self.api)
-        self.playlist  = _PlayList(self.api)
-        self.track  = _Track(self.api)
-        self.tag    = _Tag(self.api)
-        self.user   = _User(self.api)
+        self.artist   = _Artist(self.api)
+        self.album    = _Album(self.api)
+        self.chart    = _Chart(self.api)
+        self.library  = _Library(self.api)
+        self.playlist = _PlayList(self.api)
+        self.track    = _Track(self.api)
+        self.tag      = _Tag(self.api)
+        self.user     = _User(self.api)
 
     
     def api(self, method, **kwargs):
