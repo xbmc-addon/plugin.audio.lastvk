@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import xbmcup.app
-import xbmcup.system
-
 
 # HANDLERS
+
+from core.index     import Index, Info, Setting
+from core.vkontakte import IndexVK, TracksVK
 from core.chart     import Chart, ChartArtists, ChartTracks
 from core.playlist  import Playlist, PlaylistAdd, PlaylistTracks
 from core.library   import Library, LibraryArtists, LibraryArtist, LibraryAlbums, LibraryTracks
@@ -16,39 +17,7 @@ from core.recomm    import Recommendations
 from core.cache     import ClearCache
 
 
-
-class Index(xbmcup.app.Handler):
-    def handle(self):
-
-        cover = xbmcup.system.fs('home://addons/plugin.audio.lastvk/icon.png')
-        fanart = xbmcup.system.fs('home://addons/plugin.audio.lastvk/fanart.jpg')
-
-        self.item(u'Библиотека', self.link('library'), folder=True, cover=cover, fanart=fanart)
-        self.item(u'Плейлисты', self.link('playlists'), folder=True, cover=cover, fanart=fanart)
-        self.item(u'Рекомендации', self.link('recommendations'), folder=True, cover=cover, fanart=fanart)
-
-        self.item(u'Чарты', self.link('chart'), folder=True, cover=cover, fanart=fanart)
-
-        self.item(u'Поиск Last.fm', self.link('search-lastfm'), folder=True, cover=cover, fanart=fanart)
-        self.item(u'Поиск ВКонтакте', self.link('search-vk'), folder=True, cover=cover, fanart=fanart)
-        
-        self.render(mode='list')
-
-
-
-class Info(xbmcup.app.Handler):
-    def handle(self):
-        # TODO: надо заменить на xbmcup
-
-        import xbmc
-        xbmc.executebuiltin('Action(Info)')
-
-
-class Setting(xbmcup.app.Handler):
-    def handle(self):
-        xbmcup.gui.setting()
-
-
+# ROUTES
 
 plugin = xbmcup.app.Plugin()
 
@@ -84,6 +53,9 @@ plugin.route('recommendations',  Recommendations)
 
 plugin.route('play-video',       PlayVideo)
 plugin.route('play-audio',       PlayAudio)
+
+plugin.route('index-vk',         IndexVK)
+plugin.route('tracks-vk',        TracksVK)
 
 plugin.route('info',             Info)
 plugin.route('setting',          Setting)

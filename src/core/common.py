@@ -110,3 +110,39 @@ class RenderArtists:
             self.item(**item)
 
         return len(artists)
+
+
+class RenderTracksVK:
+    def render_tracks_vk(self, data):
+        total = len(data)
+
+        use_artist = bool(len(dict([(x['artist'], 1) for x in data])) > 1)
+
+        for i, r in enumerate(data):
+
+            r['artist'] = r['artist'].replace('&amp;', '&')
+            r['title']  =  r['title'].replace('&amp;', '&')
+
+            title = r['title']
+            if use_artist:
+                title  = u'[B]' + r['artist'] + u'[/B]  -  ' + title
+
+            item = dict(
+                url    = self.resolve('play-audio', url=r['url'], artist=r['artist'], title=r['title'], duration=r['duration']),
+                title  = title,
+                media  = 'audio',
+                info   = {'title': r['title']},
+                total  = total,
+                cover  = self.parent.cover,
+                fanart = self.parent.fanart,
+                menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                menu_replace = True
+            )
+
+            item['info']['artist'] = r['artist']
+            item['info']['duration'] = r['duration']
+            
+            item['info']['tracknumber'] = i + 1
+
+            self.item(**item)
+

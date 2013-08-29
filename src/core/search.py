@@ -2,7 +2,7 @@
 
 import xbmcup.gui
 
-from common import RenderArtists, COVER_NOALBUM
+from common import RenderArtists, RenderTracksVK, COVER_NOALBUM
 from api import lastfm, vk
 
 class SearchLastFM(xbmcup.app.Handler, RenderArtists):
@@ -99,31 +99,12 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
 
 
 
-class SearchVK(xbmcup.app.Handler):
+class SearchVK(xbmcup.app.Handler, RenderTracksVK):
     def handle(self):
         query = xbmcup.gui.prompt(u'Поиск ВКонтакте')
         if query:
             result = vk.api('audio.search', q=query, auto_complete=1, count=300)
             if result:
-                total = len(result['items'])
-
-                for i, r in enumerate(result['items']):
-
-                    item = dict(
-                        url    = self.resolve('play-audio', url=r['url'], artist=r['artist'], title=r['title'], duration=r['duration']),
-                        title  = u'[B]' + r['artist'] + u'[/B] - ' + r['title'],
-                        media  = 'audio',
-                        info   = {'title': r['title']},
-                        menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
-                        menu_replace = True,
-                        total  = total
-                    )
-
-                    item['info']['artist'] = r['artist']
-                    item['info']['duration'] = r['duration']
-                    
-                    item['info']['tracknumber'] = i + 1
-
-                    self.item(**item)
-
-        self.render(content='songs', mode='list')
+                self.render_tracks_vk(result['items'])
+                
+        self.render(content='songs', mode='biglist')
