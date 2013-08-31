@@ -4,6 +4,7 @@ import urllib
 import threading
 import traceback
 
+import xbmcup.app
 import xbmcup.system
 import xbmcup.log
 
@@ -16,6 +17,33 @@ COVER_BACKWARD = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/m
 COVER_FORWARD  = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/forward.png')
 COVER_ADD      = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/add.png')
 
+
+
+class Language:
+    def get_lang(self):
+        langlist = (None, 'zh', 'en', 'fr', 'de', 'it', 'jp', 'pl', 'pt', 'ru', 'es', 'sv', 'tr')
+        curlang = langlist[int(xbmcup.app.setting.lastfm_lang)]
+        if curlang:
+            return curlang
+        code = xbmcup.system.config.langcode
+        return code if code in langlist else 'en'
+
+    def get_lang_domain(self):
+        return dict((
+                ('zh', 'cn.last.fm'),
+                ('en', 'www.last.fm'),
+                ('fr', 'www.lastfm.fr'),
+                ('de', 'www.lastfm.de'),
+                ('it', 'www.lastfm.it'),
+                ('jp', 'www.lastfm.jp'),
+                ('pl', 'www.lastfm.pl'),
+                ('pt', 'www.lastfm.com.br'),
+                ('ru', 'www.lastfm.ru'),
+                ('es', 'www.lastfm.es'),
+                ('sv', 'www.lastfm.se'),
+                ('tr', 'www.lastfm.com.tr')
+            ))[self.get_lang()]
+        
 
 
 class CacheLastFM:

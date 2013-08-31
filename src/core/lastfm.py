@@ -70,11 +70,11 @@ class _Base:
 
 
 class _Artist(_Base):
-    def getInfo(self, mbid=None, artist=None):
+    def getInfo(self, mbid=None, artist=None, lang='en'):
         if mbid:
-            xml = ET.fromstring(self.api('artist.getInfo', mbid=mbid, autocorrect=1))
+            xml = ET.fromstring(self.api('artist.getInfo', mbid=mbid, lang=lang, autocorrect=1))
         else:
-            xml = ET.fromstring(self.api('artist.getInfo', artist=artist, autocorrect=1))
+            xml = ET.fromstring(self.api('artist.getInfo', artist=artist, lang=lang, autocorrect=1))
 
         name = xml.findtext('./artist/name')
         if name:
@@ -594,7 +594,7 @@ class LastFM(object):
             response = xbmcup.net.http.post('https://ws.audioscrobbler.com/2.0/', data=params)
         else:
             response = xbmcup.net.http.get('http://ws.audioscrobbler.com/2.0/', params=params)
-
+            
         if response.status_code < 200 or response.status_code > 299:
             raise LastFMError(dict(error=response.status_code, message='HTTP Error'))
 

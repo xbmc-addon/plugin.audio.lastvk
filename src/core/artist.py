@@ -3,7 +3,7 @@
 import xbmcup.app
 import xbmcup.parser
 
-from common import CacheLastFM, RenderArtists, COVER_NOALBUM
+from common import Language, CacheLastFM, RenderArtists, COVER_NOALBUM
 from api import cache, lastfm
 from language import lang
 
@@ -19,7 +19,7 @@ class Base(xbmcup.app.Handler, CacheLastFM):
 
 
     
-class GetArtist(Base):
+class GetArtist(Base, Language):
     def get_artist(self, mbid, artist):
         token = 'lastfm:artist:profile:' + mbid + ':' + self.encode(artist)
 
@@ -27,7 +27,7 @@ class GetArtist(Base):
         if data:
             return data
 
-        data = lastfm.artist.getInfo(mbid=mbid, artist=artist)
+        data = lastfm.artist.getInfo(mbid=mbid, artist=artist, lang=self.get_lang())
         if data:
 
             for tag in ('summary', 'content'):
@@ -279,7 +279,7 @@ class Similar(GetSimilar, RenderArtists):
         self.render(content='artists', mode='thumb')
 
 
-class Bio(GetArtist):
+class Bio(GetArtist, Language):
     def handle(self):
         profile = self.get_artist(self.argv['mbid'], self.argv['artist'])
         if not profile:
@@ -332,9 +332,7 @@ class Bio(GetArtist):
         xbmcup.gui.alert(lang.bio_not_found, title=title)
 
     def _get_bio(self, url):
-        #html = self.http_fetch(profile['bio'])
-
-        html = self.http_fetch(url.replace('last.fm', 'lastfm.ru'))
+        html = self.http_fetch(url.replace('www.last.fm', self.get_lang_domain()))
 
         if html is not None:
             box = xbmcup.parser.re('<div id="wiki">(.+?)</div>', html)
