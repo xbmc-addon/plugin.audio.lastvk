@@ -8,7 +8,7 @@ import xbmcup.system
 import xbmcup.log
 
 import api
-
+from language import lang
 
 
 COVER_NOALBUM  = xbmcup.system.fs('home://addons/plugin.audio.lastvk/resources/media/icons/noalbum.jpg')
@@ -101,10 +101,10 @@ class RenderArtists:
             )
 
             if url == 'library-artist':
-                item['menu'].append((u'Удалить из библиотеки', self.replace('library-artists', delete=artist['name'], page=page)))
+                item['menu'].append((lang.remove_from_library, self.replace('library-artists', delete=artist['name'], page=page)))
             else:
-                item['menu'].append((u'Добавить в библиотеку', self.replace('library-add', artist=artist['name'])))
-            item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.add_to_library, self.replace('library-add', artist=artist['name'])))
+            item['menu'].append((lang.settings, self.link('setting')))
 
             if artist['image']:
                 item['cover'] = artist['image']
@@ -141,7 +141,7 @@ class RenderTracksVK:
                 total  = total,
                 cover  = self.parent.cover,
                 fanart = self.parent.fanart,
-                menu   = [(u'Информация', self.link('info')), (u'Настройки дополнения', self.link('setting'))],
+                menu   = [(lang.info, self.link('info')), (lang.settings, self.link('setting'))],
                 menu_replace = True
             )
 

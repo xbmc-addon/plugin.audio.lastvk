@@ -5,6 +5,7 @@ import xbmcup.parser
 
 from common import CacheLastFM, RenderArtists, COVER_NOALBUM
 from api import cache, lastfm
+from language import lang
 
 
 class Base(xbmcup.app.Handler, CacheLastFM):
@@ -111,34 +112,34 @@ class Artist(GetArtist, GetAlbums, GetVideos, GetSimilar):
         profile = self.get_artist(mbid, artist)
         if profile:
 
-            self.item(u'Композиции', self.link('tracks', mbid=mbid, artist=artist, tags=profile['tags']), folder=True, cover=profile['image'], fanart=self.parent.fanart)
+            self.item(lang.tracks, self.link('tracks', mbid=mbid, artist=artist, tags=profile['tags']), folder=True, cover=profile['image'], fanart=self.parent.fanart)
 
             albums = self.get_albums(mbid, artist)
             if albums:
                 cover = [x['image'] for x in albums if x['image']]
-                self.item(u'Альбомы', self.link('albums', mbid=mbid, artist=artist, tags=profile['tags']), folder=True, cover=(cover[0] if cover else None), fanart=self.parent.fanart)
+                self.item(lang.albums, self.link('albums', mbid=mbid, artist=artist, tags=profile['tags']), folder=True, cover=(cover[0] if cover else None), fanart=self.parent.fanart)
 
             videos = self.get_videos(mbid, artist, profile['url'], True)
             if videos:
-                self.item(u'Видеоклипы', self.link('videos', mbid=mbid, artist=artist, url=profile['url']), folder=True, cover=videos[0]['image'], fanart=self.parent.fanart)
+                self.item(lang.videos, self.link('videos', mbid=mbid, artist=artist, url=profile['url']), folder=True, cover=videos[0]['image'], fanart=self.parent.fanart)
 
 
-            #self.item(u'Фотографии', self.link('images', artist=aid), folder=True, fanart=self.parent.fanart)
+            #self.item(lang.pictures, self.link('images', artist=aid), folder=True, fanart=self.parent.fanart)
 
 
             if profile['tags']:
-                self.item(u'Тэги', self.link('tags', tags=profile['tags']), folder=True, cover=profile['image'], fanart=self.parent.fanart)
+                self.item(lang.tags, self.link('tags', tags=profile['tags']), folder=True, cover=profile['image'], fanart=self.parent.fanart)
 
 
             if profile['bio'] or profile['content'] or profile['summary']:
-                self.item(u'Биография', self.link('bio', mbid=mbid, artist=artist), folder=True, cover=profile['image'], fanart=self.parent.fanart)
+                self.item(lang.biography, self.link('bio', mbid=mbid, artist=artist), folder=True, cover=profile['image'], fanart=self.parent.fanart)
 
 
             if profile['has_similar']:
                 similar = self.get_similar(mbid, artist)
                 if similar:
                     cover = [x['image'] for x in similar if x['image']]
-                    self.item(u'Похожие исполнители', self.link('similar', mbid=mbid, artist=artist), folder=True, cover=(cover[0] if cover else None), fanart=self.parent.fanart)
+                    self.item(lang.similar, self.link('similar', mbid=mbid, artist=artist), folder=True, cover=(cover[0] if cover else None), fanart=self.parent.fanart)
 
         self.render(content='artists', mode='list')
 
@@ -155,9 +156,9 @@ class Albums(GetAlbums):
                 menu_replace = True
             )
 
-            item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=self.argv['artist'])))
-            item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=self.argv['artist'], album=album['name'])))
-            item['menu'].append((u'Настройки дополнения', self.link('setting')))
+            item['menu'].append((lang.add_to_playlist, self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=self.argv['artist'])))
+            item['menu'].append((lang.add_to_library, self.link('library-add', artist=self.argv['artist'], album=album['name'])))
+            item['menu'].append((lang.settings, self.link('setting')))
 
             if album['image']:
                 item['cover'] = album['image']
@@ -192,10 +193,10 @@ class AlbumTracks(Base):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=artist, song=track['name'])))
-                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=artist, track=track['name'])))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.info, self.link('info')))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add', artist=artist, song=track['name'])))
+                item['menu'].append((lang.add_to_library, self.link('library-add', artist=artist, track=track['name'])))
+                item['menu'].append((lang.settings, self.link('setting')))
 
 
                 item['info']['artist'] = artist
@@ -244,10 +245,10 @@ class Tracks(Base):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=(track['artist']['name'] if track['artist'] else artist), song=track['name'])))
-                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=(track['artist']['name'] if track['artist'] else artist), track=track['name'])))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.info, self.link('info')))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add', artist=(track['artist']['name'] if track['artist'] else artist), song=track['name'])))
+                item['menu'].append((lang.add_to_library, self.link('library-add', artist=(track['artist']['name'] if track['artist'] else artist), track=track['name'])))
+                item['menu'].append((lang.settings, self.link('setting')))
 
                 item['info']['artist'] = track['artist']['name'] if track['artist'] else self.argv['artist']
                 item['info']['duration'] = track['duration']
@@ -309,7 +310,7 @@ class Bio(GetArtist):
                         if not formation['from']:
                             formations.append(u'? - ' + formation['to'])
                         elif not formation['to']:
-                            formations.append(formation['from'] + u' – по сей день')
+                            formations.append(formation['from'] + u' – ' + lang.present)
                         else:
                             formations.append(formation['from'] + u' – ' + formation['to'])
 
@@ -327,8 +328,8 @@ class Bio(GetArtist):
 
     def _fail(self, title=None):
         if not title:
-            title = u'Biography'
-        xbmcup.gui.alert(u'Не удалось найти биографию.', title=title)
+            title = lang.biography
+        xbmcup.gui.alert(lang.bio_not_found, title=title)
 
     def _get_bio(self, url):
         #html = self.http_fetch(profile['bio'])

@@ -4,11 +4,12 @@ import xbmcup.gui
 
 from common import RenderArtists, RenderTracksVK, COVER_NOALBUM
 from api import lastfm, vk
+from language import lang
 
 class SearchLastFM(xbmcup.app.Handler, RenderArtists):
     def handle(self):
-        sources = [('artist', u'Исполнители'), ('album', u'Альбомы'), ('track', u'Композиции'), ('tag', u'Теги')]
-        source = xbmcup.gui.select(u'Что ищем?', sources)
+        sources = [('artist', lang.artists), ('album', lang.albums), ('track', lang.tracks), ('tag', lang.tags)]
+        source = xbmcup.gui.select(lang.what_search, sources)
         if source is None:
             self.render()
         else:
@@ -47,10 +48,10 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
             )
 
             if album['artist']:
-                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=album['artist'])))
-                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=album['artist'], album=album['name'])))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add-album', mbid=album['mbid'], name=album['name'], artist=album['artist'])))
+                item['menu'].append((lang.add_to_library, self.link('library-add', artist=album['artist'], album=album['name'])))
 
-            item['menu'].append((u'Настройки дополнения', self.link('setting')))
+            item['menu'].append((lang.settings, self.link('setting')))
 
             if album['image']:
                 item['cover'] = album['image']
@@ -75,10 +76,10 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
                 menu_replace = True
             )
 
-            item['menu'].append((u'Информация', self.link('info')))
-            item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
-            item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=track['artist'], track=track['name'])))
-            item['menu'].append((u'Настройки дополнения', self.link('setting')))
+            item['menu'].append((lang.info, self.link('info')))
+            item['menu'].append((lang.add_to_playlist, self.link('playlist-add', artist=track['artist'], song=track['name'])))
+            item['menu'].append((lang.add_to_library, self.link('library-add', artist=track['artist'], track=track['name'])))
+            item['menu'].append((lang.settings, self.link('setting')))
             
             item['info']['artist'] = track['artist']
             
@@ -107,7 +108,7 @@ class SearchLastFM(xbmcup.app.Handler, RenderArtists):
 
 class SearchVK(xbmcup.app.Handler, RenderTracksVK):
     def handle(self):
-        query = xbmcup.gui.prompt(u'Поиск ВКонтакте')
+        query = xbmcup.gui.prompt(lang.find_vkcom)
         if query:
             result = vk.api('audio.search', q=query, auto_complete=1, count=300)
             if result:

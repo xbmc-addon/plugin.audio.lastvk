@@ -4,11 +4,12 @@ import xbmcup.app
 
 from common import RenderTracksVK
 from api import vk
+from language import lang
 
 class IndexVK(xbmcup.app.Handler):
     def handle(self):
-        self.item(u'[COLOR FF0DA09E]Поиск[/COLOR]', self.link('search-vk'), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'[COLOR FF0DA09E]Мои аудиозаписи[/COLOR]', self.link('tracks-vk'), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(u'[COLOR FF0DA09E]' + lang.find + u'[/COLOR]', self.link('search-vk'), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(u'[COLOR FF0DA09E]' + lang.my_music + u'[/COLOR]', self.link('tracks-vk'), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
 
         result = vk.api('audio.getAlbums', count=100)
         if result and result['items']:

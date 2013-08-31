@@ -4,12 +4,13 @@ import xbmcup.app
 
 from common import RenderArtists, COVER_BACKWARD, COVER_FORWARD, COVER_NOALBUM
 from api import lastfm
+from language import lang
 
 class Chart(xbmcup.app.Handler):
     def handle(self):
-        self.item(u'Тэги', self.link('tags', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Исполнители', self.link('chart-artists', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Композиции', self.link('chart-tracks', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.tags, self.link('tags', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.artists, self.link('chart-artists', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.tracks, self.link('chart-tracks', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
         
         self.render(mode='list')
 
@@ -22,12 +23,12 @@ class ChartArtists(xbmcup.app.Handler, RenderArtists):
         if data:
             
             if data['page'] > 1:
-                self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('chart-artists', page=page - 1), folder=True, cover=COVER_BACKWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.previous + u'[/B][/COLOR]', self.replace('chart-artists', page=page - 1), folder=True, cover=COVER_BACKWARD)
 
             self.render_artists(data['data'])
             
             if data['page'] != data['totalPages']:
-                self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('chart-artists', page=page + 1), folder=True, cover=COVER_FORWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.next + u'[/B][/COLOR]', self.replace('chart-artists', page=page + 1), folder=True, cover=COVER_FORWARD)
         
         self.render(content='artists', mode='thumb')
 
@@ -40,7 +41,7 @@ class ChartTracks(xbmcup.app.Handler):
         if data:
             
             if data['page'] > 1:
-                self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('chart-tracks', page=page - 1), folder=True, cover=COVER_BACKWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.previous + u'[/B][/COLOR]', self.replace('chart-tracks', page=page - 1), folder=True, cover=COVER_BACKWARD)
 
             for i, track in enumerate(data['data']):
 
@@ -57,10 +58,10 @@ class ChartTracks(xbmcup.app.Handler):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
-                item['menu'].append((u'Добавить в библиотеку', self.link('library-add', artist=track['artist'], track=track['name'])))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.info, self.link('info')))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add', artist=track['artist'], song=track['name'])))
+                item['menu'].append((lang.add_to_library, self.link('library-add', artist=track['artist'], track=track['name'])))
+                item['menu'].append((lang.settings, self.link('setting')))
 
                 item['info']['artist'] = track['artist']
                 item['info']['duration'] = track['duration']
@@ -81,6 +82,6 @@ class ChartTracks(xbmcup.app.Handler):
 
 
             if data['page'] != data['totalPages']:
-                self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('chart-tracks', page=page + 1), folder=True, cover=COVER_FORWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.next + u'[/B][/COLOR]', self.replace('chart-tracks', page=page + 1), folder=True, cover=COVER_FORWARD)
 
         self.render(content='songs', mode='list')

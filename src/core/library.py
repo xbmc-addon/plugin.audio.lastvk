@@ -4,12 +4,13 @@ import xbmcup.app
 
 from common import RenderArtists, COVER_BACKWARD, COVER_FORWARD, COVER_NOALBUM
 from api import lastfm
+from language import lang
 
 class Library(xbmcup.app.Handler):
     def handle(self):
-        self.item(u'Исполнители', self.link('library-artists', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Альбомы', self.link('library-albums', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Трэки', self.link('library-tracks', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.artists, self.link('library-artists', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.albums, self.link('library-albums', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.tracks, self.link('library-tracks', page=1), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
         
         self.render(mode='list')
 
@@ -26,21 +27,21 @@ class LibraryArtists(xbmcup.app.Handler, RenderArtists):
         if data:
             
             if data['page'] > 1:
-                self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('library-artists', page=page - 1), folder=True, cover=COVER_BACKWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.previous + u'[/B][/COLOR]', self.replace('library-artists', page=page - 1), folder=True, cover=COVER_BACKWARD)
 
             self.render_artists(data['data'], page=page, url='library-artist')
             
             if data['page'] != data['totalPages']:
-                self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('library-artists', page=page + 1), folder=True, cover=COVER_FORWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.next + u'[/B][/COLOR]', self.replace('library-artists', page=page + 1), folder=True, cover=COVER_FORWARD)
         
         self.render(content='artists', mode='thumb')
 
 
 class LibraryArtist(xbmcup.app.Handler):
     def handle(self):
-        self.item(u'Композиции', self.link('library-tracks', artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Альбомы', self.link('library-albums', artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
-        self.item(u'Профайл исполнителя', self.link('artist', mbid=self.argv['mbid'], artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.tracks, self.link('library-tracks', artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.albums, self.link('library-albums', artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
+        self.item(lang.profile_of_artist, self.link('artist', mbid=self.argv['mbid'], artist=self.argv['artist']), folder=True, cover=self.parent.cover, fanart=self.parent.fanart)
         
         self.render(mode='list')
 
@@ -58,7 +59,7 @@ class LibraryAlbums(xbmcup.app.Handler):
         if data:
             
             if data['page'] > 1:
-                self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('library-albums', artist=artist, page=page - 1), folder=True, cover=COVER_BACKWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.previous + u'[/B][/COLOR]', self.replace('library-albums', artist=artist, page=page - 1), folder=True, cover=COVER_BACKWARD)
 
             for album in data['data']:
 
@@ -74,9 +75,9 @@ class LibraryAlbums(xbmcup.app.Handler):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Добавить альбом в плейлист', self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=album['artist'] or artist)))
-                item['menu'].append((u'Удалить из библиотеки', self.replace('library-albums', artist=artist, page=page, delete=(album['artist'] or artist, album['name']))))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add', mbid=album['mbid'], album=album['name'], artist=album['artist'] or artist)))
+                item['menu'].append((lang.remove_from_library, self.replace('library-albums', artist=artist, page=page, delete=(album['artist'] or artist, album['name']))))
+                item['menu'].append((lang.settings, self.link('setting')))
 
                 if album['image']:
                     item['cover'] = album['image']
@@ -90,7 +91,7 @@ class LibraryAlbums(xbmcup.app.Handler):
                 self.item(**item)
             
             if data['page'] != data['totalPages']:
-                self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('library-artists', artist=artist, page=page + 1), folder=True, cover=COVER_FORWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.next + u'[/B][/COLOR]', self.replace('library-artists', artist=artist, page=page + 1), folder=True, cover=COVER_FORWARD)
         
         self.render(content='albums', mode='thumb' if artist else 'list')
 
@@ -108,7 +109,7 @@ class LibraryTracks(xbmcup.app.Handler):
         if data:
             
             if data['page'] > 1:
-                self.item(u'[COLOR FF0DA09E][B]Назад[/B][/COLOR]', self.replace('library-tracks', artist=artist, album=album, page=page - 1), folder=True, cover=COVER_BACKWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.previous + u'[/B][/COLOR]', self.replace('library-tracks', artist=artist, album=album, page=page - 1), folder=True, cover=COVER_BACKWARD)
 
             for i, track in enumerate(data['data']):
 
@@ -125,10 +126,10 @@ class LibraryTracks(xbmcup.app.Handler):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Добавить трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'])))
-                item['menu'].append((u'Удалить из библиотеки', self.replace('library-tracks', artist=artist, album=album, page=page, delete=(track['artist'], track['name']))))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.info, self.link('info')))
+                item['menu'].append((lang.add_to_playlist, self.link('playlist-add', artist=track['artist'], song=track['name'])))
+                item['menu'].append((lang.remove_from_library, self.replace('library-tracks', artist=artist, album=album, page=page, delete=(track['artist'], track['name']))))
+                item['menu'].append((lang.settings, self.link('setting')))
 
                 item['info']['artist'] = track['artist']
                 item['info']['album'] = track['album']
@@ -150,7 +151,7 @@ class LibraryTracks(xbmcup.app.Handler):
 
 
             if data['page'] != data['totalPages']:
-                self.item(u'[COLOR FF0DA09E][B]Далее[/B][/COLOR]', self.replace('library-tracks', artist=artist, album=album, page=page + 1), folder=True, cover=COVER_FORWARD)
+                self.item(u'[COLOR FF0DA09E][B]' + lang.next + u'[/B][/COLOR]', self.replace('library-tracks', artist=artist, album=album, page=page + 1), folder=True, cover=COVER_FORWARD)
 
         self.render(content='songs', mode='list')
 

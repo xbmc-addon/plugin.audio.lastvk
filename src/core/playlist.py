@@ -5,17 +5,18 @@ import xbmcup.gui
 
 from common import CacheLastFM, COVER_NOALBUM, COVER_ADD
 from api import lastfm
+from language import lang
 
 
 class BasePlaylist(xbmcup.app.Handler):
     def playlist_create(self):
-        title = xbmcup.gui.prompt(u'Название плейлиста:')
+        title = xbmcup.gui.prompt(lang.name_of_playlist)
         return lastfm.playlist.create(title) if title else None
 
     def playlist_add(self, data, pid=None):
         playlists = [(x['id'], x['title']) for x in lastfm.user.getPlaylists() if x['id'] != pid]
-        playlists.append(('create', u'[COLOR FF0DA09E]Создать плейлист[/COLOR]'))
-        playlist = xbmcup.gui.select(u'Выберите плейлист:', playlists)
+        playlists.append(('create', u'[COLOR FF0DA09E]' + lang.create_playlist + u'[/COLOR]'))
+        playlist = xbmcup.gui.select(lang.select_playlist, playlists)
         if playlist == 'create':
             playlist = self.playlist_create()
         if playlist:
@@ -40,7 +41,7 @@ class Playlist(BasePlaylist):
 
             self.item(**item)
 
-        self.item(u'[COLOR FF0DA09E]Создать плейлист[/COLOR]', self.replace('playlists', create=1), folder=True, cover=COVER_ADD, fanart=self.parent.fanart)
+        self.item(u'[COLOR FF0DA09E]' + lang.create_playlist + u'[/COLOR]', self.replace('playlists', create=1), folder=True, cover=COVER_ADD, fanart=self.parent.fanart)
         
         self.render(mode='list')
 
@@ -77,9 +78,9 @@ class PlaylistTracks(xbmcup.app.Handler):
                     menu_replace = True
                 )
 
-                item['menu'].append((u'Информация', self.link('info')))
-                item['menu'].append((u'Копировать трэк в плейлист', self.link('playlist-add', artist=track['artist'], song=track['name'], pid=self.argv['pid'])))
-                item['menu'].append((u'Настройки дополнения', self.link('setting')))
+                item['menu'].append((lang.info, self.link('info')))
+                item['menu'].append((lang.copy_to_playlist, self.link('playlist-add', artist=track['artist'], song=track['name'], pid=self.argv['pid'])))
+                item['menu'].append((lang.settings, self.link('setting')))
 
                 item['title'] = track['name']
                 if use_artist and track['artist']:
