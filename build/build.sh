@@ -1,4 +1,4 @@
 cd `dirname $0`/../src
-cp -r ./* $HOME/Library/Application\ Support/XBMC/addons/plugin.audio.lastvk/
+cp -r ./* $HOME/Library/Application\ Support/Kodi/addons/plugin.audio.lastvk/
 
-rm -f $HOME/.xbmc/temp/xbmcup/plugin.audio.lastvk/lastvk.cache.db
+rm -f $HOME/.kodi/temp/xbmcup/plugin.audio.lastvk/lastvk.cache.db
